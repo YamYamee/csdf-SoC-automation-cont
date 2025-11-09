@@ -233,6 +233,7 @@ module storageModuleNew './storage.bicep' = if (createNewResourceGroup) {
     userPrincipalId: principalId
     userPrincipalType: principalType
     privateEndpointSubnetId: vnetModuleNew!.outputs.privateEndpointSubnetId
+    vnetId: vnetModuleNew!.outputs.vnetId
   }
 }
 
@@ -249,6 +250,7 @@ module storageModuleExisting './storage.bicep' = if (!createNewResourceGroup) {
     userPrincipalId: principalId
     userPrincipalType: principalType
     privateEndpointSubnetId: vnetModuleExisting!.outputs.privateEndpointSubnetId
+    vnetId: vnetModuleExisting!.outputs.vnetId
   }
 }
 

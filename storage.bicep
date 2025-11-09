@@ -26,6 +26,9 @@ param userPrincipalType string = 'User'
 @description('The Subnet ID where the Private Endpoint will be deployed.')
 param privateEndpointSubnetId string
 
+@description('The VNet ID for Private DNS Zone linking')
+param vnetId string
+
 // Variables
 // Azure Storage IP rules must be in IPv4 CIDR format (x.x.x.x or x.x.x.x/y)
 var ipRules = [
@@ -177,6 +180,86 @@ resource privateEndpointBlob 'Microsoft.Network/privateEndpoints@2023-11-01' = {
           groupIds: [
             'blob' // Blob Storage service
           ]
+        }
+      }
+    ]
+  }
+}
+
+// ===== Private DNS Zones =====
+
+// Private DNS Zone for File Share (privatelink.file.core.windows.net)
+resource privateDnsZoneFile 'Microsoft.Network/privateDnsZones@2020-06-01' = {
+  name: 'privatelink.file.core.windows.net'
+  location: 'global'
+  tags: {
+    purpose: 'File Share Private Endpoint DNS resolution'
+    service: 'Azure Storage'
+  }
+}
+
+// Link Private DNS Zone to VNet
+resource privateDnsZoneLinkFile 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = {
+  parent: privateDnsZoneFile
+  name: '${storageAccountName}-file-vnet-link'
+  location: 'global'
+  properties: {
+    registrationEnabled: false
+    virtualNetwork: {
+      id: vnetId
+    }
+  }
+}
+
+// DNS Zone Group for File Share Private Endpoint
+resource privateDnsZoneGroupFile 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2023-11-01' = {
+  parent: privateEndpointFile
+  name: 'default'
+  properties: {
+    privateDnsZoneConfigs: [
+      {
+        name: 'config1'
+        properties: {
+          privateDnsZoneId: privateDnsZoneFile.id
+        }
+      }
+    ]
+  }
+}
+
+// Private DNS Zone for Blob Storage (privatelink.blob.core.windows.net)
+resource privateDnsZoneBlob 'Microsoft.Network/privateDnsZones@2020-06-01' = {
+  name: 'privatelink.blob.core.windows.net'
+  location: 'global'
+  tags: {
+    purpose: 'Blob Storage Private Endpoint DNS resolution'
+    service: 'Azure Storage'
+  }
+}
+
+// Link Private DNS Zone to VNet
+resource privateDnsZoneLinkBlob 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = {
+  parent: privateDnsZoneBlob
+  name: '${storageAccountName}-blob-vnet-link'
+  location: 'global'
+  properties: {
+    registrationEnabled: false
+    virtualNetwork: {
+      id: vnetId
+    }
+  }
+}
+
+// DNS Zone Group for Blob Storage Private Endpoint
+resource privateDnsZoneGroupBlob 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2023-11-01' = {
+  parent: privateEndpointBlob
+  name: 'default'
+  properties: {
+    privateDnsZoneConfigs: [
+      {
+        name: 'config1'
+        properties: {
+          privateDnsZoneId: privateDnsZoneBlob.id
         }
       }
     ]

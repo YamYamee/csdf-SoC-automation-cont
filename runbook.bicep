@@ -16,7 +16,7 @@ param runbookName string = 'Copy-VmDigitalEvidence'
 param runbookDescription string = 'Performs digital evidence capture operation on a target VM with parallel hash calculation'
 
 @description('GitHub repository in format: owner/repo')
-param githubRepo string = 'YamYamee/csdf-soc-automation'
+param githubRepo string = 'YamYamee/csdf-soc-automation-cont'
 
 @description('GitHub branch name')
 param githubBranch string = 'main'
