@@ -1,0 +1,5 @@
+# Ignore secrets
+main.params.json
+
+# Ignore environment files
+Start-ForensicEvidence.ps1
